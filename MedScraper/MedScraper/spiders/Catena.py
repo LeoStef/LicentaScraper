@@ -34,16 +34,22 @@ class CatenaSpider(scrapy.Spider):
         pageNumberNext = int(URL[-1]) + 1
 
         #prices
-        prices = []
-        for i in range(int(len(names)/3)):
-            for j in range(2):
-                prices.append(response.xpath("/html/body/div[2]/div[2]/div[1]/div[1]/div["+ str(i + 3) +"]/ul/li["+str(j + 1)+"]/script[2]/text()").get())
-        formattedPrices = []
+        # prices = []
+        # for i in range(int(3)):
+        #     for j in range(2):
+        #         prices.append(response.xpath("/html/body/div[2]/div[2]/div[1]/div[1]/div["+ str(i + 3) + "]/ul/li[" + str(j + 1) + "]/script[2]/text()").re
+        # formattedPrices = []
+        # for price in prices:
+        #     start = price.index("'price': ") + 10
+        #     end = price.index("'price': ") + 15
+        #     formattedPrices.append(price[start:end])
 
-        for price in prices:
-            start = price.index("'price': ") +10
-            end = price.index("'price': ") +15
-            formattedPrices.append(price[start:end])
+        # betterPrices
+        formattedPrices = []
+        formattedPrices = response.xpath('/html').re(r"(?<='price': ').[0-9].[0-9]*")
+        formattedPrices = formattedPrices[1::3]
+        print(formattedPrices)
+
 
         #pictures
         pictures = response.css(".content-box img").xpath('@src').getall()
@@ -53,9 +59,14 @@ class CatenaSpider(scrapy.Spider):
             picturesFull.append(fullPic)
 
         #categorie
-        categorie = response.xpath('/html/body/div[2]/div[2]/div[1]/div[1]/ul/li[5]/a/span/text()').getall()
+     #   categorie = response.xpath('/html/body/div[2]/div[2]/div[1]/div[1]/ul/li[5]/a/span/text()').getall()
 
+        #betterCategorie(
+        categorieRaw=URL.split("medicamente/")[1].split("/page")
+        categorie = []
 
+        for cat in categorieRaw:
+          categorie.append (cat.replace("-"," "))
         #array of objects
         objectArray = []
         while len(formattedPrices)<len(names):
@@ -91,6 +102,8 @@ class CatenaSpider(scrapy.Spider):
             yield {
                 "name":item[0],
                 "pret":item[1],
-                "pic":item[2],
-                "categorie":item[3][0]
+                "imageURL":item[2],
+                "categorie":item[3][0],
+                "pharmacy": "catena",
+                "lista preturi": formattedPrices
             }
